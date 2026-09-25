@@ -1,0 +1,67 @@
+name: Run Hiring Cafe Data Pipeline
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+        cache: 'pip'
+
+    - name: Set up Java (Required for PySpark)
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '11'
+
+    - name: Install Google Chrome & Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y xvfb libxi6 libnss3 libasound2 libgbm1
+        wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+        sudo apt-get install -y ./google-chrome-stable_current_amd64.deb
+        rm google-chrome-stable_current_amd64.deb
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install --no-cache-dir seleniumbase
+        sbase install chromedriver # MATCHED: Installs the companion driver just like your Dockerfile
+        pip install -r requirements.txt
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        project_id: ${{ vars.GCP_PROJECT_ID }}
+        workload_identity_provider: ${{ vars.GCP_WORKLOAD_PROVIDER }}
+
+    - name: Run Pipeline Script
+      env:
+        GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+        GCP_BRONZE_DATASET_ID: "bronze_dataset"
+        GCP_TEMP_BUCKET: "hiring-cafe-staging-bucket"
+        SCRAPER_CLIENT_EMAIL: ${{ vars.SCRAPER_CLIENT_EMAIL }}
+        SPARK_GCS_CLIENT_EMAIL: ${{ vars.SPARK_GCS_CLIENT_EMAIL }}
+
+        DBT_PROFILES_DIR: "/home/runner/work/${{ github.event.repository.name }}/${{ github.event.repository.name }}/dbt"
+        PYTHONUNBUFFERED: "1"
+        PYTHONPATH: "/home/runner/work/${{ github.event.repository.name }}/${{ github.event.repository.name }}"
+      run: |
+        # MATCHED: Runs your dbt package manager before triggering main.py
+        dbt deps --project-dir dbt
+        python crawler/main.py

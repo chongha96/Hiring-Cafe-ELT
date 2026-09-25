@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: bronze_data
+    database: "{{ env_var('GCP_PROJECT_ID') }}"
+    schema: "{{ env_var('GCP_BRONZE_DATASET_ID') }}"
+    tables:
+      - name: job_data
+

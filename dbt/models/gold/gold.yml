@@ -1,0 +1,170 @@
+version: 2
+
+models:
+  - name: fact_job_posting
+    columns:
+      - name: job_id
+        tests:
+          - unique
+          - not_null
+
+      - name: company_id
+        tests:
+          - relationships:
+              to: ref('dim_company')
+              field: company_id
+
+      - name: condition_id
+        tests:
+          - relationships:
+              to: ref('dim_work_condition')
+              field: condition_id
+
+      - name: benefit_id
+        tests:
+          - relationships:
+              to: ref('dim_benefits')
+              field: benefit_id
+
+      - name: requirement_id
+        tests:
+          - relationships:
+              to: ref('dim_work_requirements')
+              field: requirement_id
+
+      - name: education_id
+        tests:
+          - relationships:
+              to: ref('dim_education')
+              field: education_id
+
+
+  - name: dim_company
+    columns:
+      - name: company_id
+        tests:
+          - unique
+          - not_null
+
+
+  - name: dim_work_condition
+    columns:
+      - name: condition_id
+        tests:
+          - unique
+          - not_null
+
+
+  - name: dim_work_requirements
+    columns:
+      - name: requirement_id
+        tests:
+          - unique
+          - not_null
+
+
+  - name: dim_benefits
+    columns:
+      - name: benefit_id
+        tests:
+          - unique
+          - not_null
+
+
+  - name: dim_education
+    columns:
+      - name: education_id
+        tests:
+          - unique
+          - not_null
+
+
+  - name: dim_location
+    columns:
+      - name: location_id
+        tests:
+          - unique
+          - not_null
+
+
+  - name: dim_language
+    columns:
+      - name: language_id
+        tests:
+          - unique
+          - not_null
+
+
+  - name: dim_tool
+    columns:
+      - name: tool_id
+        tests:
+          - unique
+          - not_null
+
+
+  - name: dim_certification
+    columns:
+      - name: certification_id
+        tests:
+          - unique
+          - not_null
+
+
+  - name: dim_field_of_study
+    columns:
+      - name: field_id
+        tests:
+          - unique
+          - not_null
+
+
+  - name: bridge_job_tool
+    columns:
+      - name: job_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('fact_job_posting')
+              field: job_id
+
+      - name: tool_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_tool')
+              field: tool_id
+
+
+  - name: bridge_job_certification
+    columns:
+      - name: job_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('fact_job_posting')
+              field: job_id
+
+      - name: certification_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_certification')
+              field: certification_id
+
+
+  - name: bridge_job_field_of_study
+    columns:
+      - name: job_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('fact_job_posting')
+              field: job_id
+
+      - name: field_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_field_of_study')
+              field: field_id

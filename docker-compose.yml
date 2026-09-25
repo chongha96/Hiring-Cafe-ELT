@@ -1,0 +1,91 @@
+x-airflow-common: &airflow-common
+  image: hiring-cafe-airflow:latest
+  env_file:
+    - .env
+
+  environment:
+    AIRFLOW__API_AUTH__JWT_SECRET: ${AIRFLOW_JWT_SECRET}
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-api-server:8080/execution/
+    AIRFLOW__CORE__FERNET_KEY: ''
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: admin:admin
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: sqlite:////opt/airflow/database/airflow.db
+
+    DOCKER_HOST: unix:///var/run/docker.sock
+    HOST_PROJECT_PATH: ${HOST_PROJECT_PATH}
+
+    GCP_PROJECT_ID: ${GCP_PROJECT_ID}
+    GCP_TEMP_BUCKET: ${GCP_TEMP_BUCKET}
+    GCP_BRONZE_DATASET_ID: ${GCP_BRONZE_DATASET_ID}
+    GCP_SILVER_DATASET_ID: ${GCP_SILVER_DATASET_ID}
+    GCP_GOLD_DATASET_ID: ${GCP_GOLD_DATASET_ID}
+
+  volumes:
+    - ./airflow/dags:/opt/airflow/dags
+    - ./airflow/logs:/opt/airflow/logs
+    - ./airflow/plugins:/opt/airflow/plugins
+    - ./airflow/database:/opt/airflow/database
+    - ./data:/opt/airflow/data
+    - ./dbt:/opt/airflow/dbt
+    - /var/run/docker.sock:/var/run/docker.sock
+
+  user: "${AIRFLOW_UID:-50000}:0"
+
+
+services:
+
+  pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hiring-cafe-crawler:latest
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    entrypoint:
+      - echo
+      - "Pipeline engine container initialized and standing by..."
+
+
+  airflow-init:
+    <<: *airflow-common
+    build:
+      context: .
+      dockerfile: airflow/Dockerfile
+
+    command: db migrate
+
+
+  airflow-api-server:
+    <<: *airflow-common
+    command: api-server
+    ports:
+      - "8080:8080"
+    restart: always
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+
+  airflow-dag-processor:
+    <<: *airflow-common
+    command: dag-processor
+    restart: always
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    restart: always
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+
+      airflow-api-server:
+        condition: service_started

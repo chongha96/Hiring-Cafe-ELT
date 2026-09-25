@@ -1,0 +1,28 @@
+name: 'hiring_cafe_dbt'
+version: '1.0.0'
+config-version: 2
+
+profile: 'hiring_cafe_profile'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  hiring_cafe_dbt:
+    silver:
+      +enabled: true
+      +materialized: table
+      +schema: "{{ env_var('GCP_SILVER_DATASET_ID') }}"
+
+    gold:
+      +enabled: true
+      +materialized: table
+      +schema: "{{ env_var('GCP_GOLD_DATASET_ID') }}"
