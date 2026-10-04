@@ -58,6 +58,8 @@ The Gold layer provides analytics-ready dimensional models, including fact, dime
 
 See [Data Dictionary](datadictionary.md) for data definitions.
 
+![HC ERD.png](https://github.com/chongha96/Hiring-Cafe-ELT/blob/main/HC%20ERD.png)
+
 ## Pipeline Orchestration
 
 Apache Airflow manages the execution order of the pipeline.
