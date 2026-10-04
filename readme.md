@@ -6,7 +6,7 @@ The pipeline uses SeleniumBase for web scraping, Apache Spark for data processin
 
 ## Architecture
 
-The pipeline follows the general workflow:
+The pipeline follows the workflow:
 
 ```text
 Hiring Cafe
@@ -31,11 +31,11 @@ dbt Gold Layer
 - **Python** — Core application and pipeline logic
 - **SeleniumBase** — Dynamic web scraping
 - **Apache Spark / PySpark** — Data processing
-- **Apache Airflow** — Pipeline orchestration
+- **Apache Airflow** — Orchestration
 - **Astronomer Cosmos** — dbt integration with Airflow
 - **dbt** — SQL transformations and data testing
 - **Google Cloud Storage** — Intermediate cloud storage
-- **Google BigQuery** — Cloud data warehouse
+- **Google BigQuery** — Data warehouse
 - **Docker / Docker Compose** — Containerized development and execution
 
 ## Data Architecture
@@ -54,15 +54,13 @@ Transformations include data type handling, normalization, derived identifiers, 
 
 ### Gold
 
-The Gold layer provides analytics-ready dimensional models, including fact, dimension, and bridge tables.
+The Gold layer includes fact, dimension, and bridge tables.
 
 See [Data Dictionary](datadictionary.md) for data definitions.
 
 ![HC ERD.png](https://github.com/chongha96/Hiring-Cafe-ELT/blob/main/HC%20ERD.png)
 
 ## Pipeline Orchestration
-
-Apache Airflow manages the execution order of the pipeline.
 
 The workflow follows:
 
@@ -81,10 +79,6 @@ Gold Models
    ↓
 dbt Tests
 ```
-
-The crawler executes in its own Docker container, while Airflow manages orchestration and cloud operations.
-
-Astronomer Cosmos converts the dbt dependency graph into Airflow tasks, allowing individual dbt models and tests to be monitored directly through the Airflow UI.
 
 ## dbt Testing
 
